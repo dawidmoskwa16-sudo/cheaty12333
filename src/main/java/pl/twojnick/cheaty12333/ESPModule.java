@@ -2,8 +2,7 @@ package pl.twojnick.cheaty12333;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
@@ -39,9 +38,10 @@ public class ESPModule {
         matrices.push();
         matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
+        // Używamy specjalnego layera, który lepiej działa w 1.21+
         VertexConsumer buffer = mc.getBufferBuilders()
                 .getEntityVertexConsumers()
-                .getBuffer(RenderLayer.getLines());
+                .getBuffer(RenderLayer.getDebugQuads());   // <-- zmiana tutaj
 
         for (Entity entity : mc.world.getEntities()) {
             if (entity == mc.player) continue;
@@ -51,7 +51,6 @@ public class ESPModule {
             drawBox(matrices, buffer, entity, color);
         }
 
-        mc.getBufferBuilders().getEntityVertexConsumers().draw(RenderLayer.getLines());
         matrices.pop();
     }
 
@@ -73,16 +72,12 @@ public class ESPModule {
         float r = color.getRed() / 255f;
         float g = color.getGreen() / 255f;
         float b = color.getBlue() / 255f;
-        float a = 0.7f;
+        float a = 0.4f;   // przezroczystość
 
         Matrix4f mat = matrices.peek().getPositionMatrix();
 
-        float x1 = (float) box.minX;
-        float y1 = (float) box.minY;
-        float z1 = (float) box.minZ;
-        float x2 = (float) box.maxX;
-        float y2 = (float) box.maxY;
-        float z2 = (float) box.maxZ;
+        float x1 = (float) box.minX, y1 = (float) box.minY, z1 = (float) box.minZ;
+        float x2 = (float) box.maxX, y2 = (float) box.maxY, z2 = (float) box.maxZ;
 
         // Dolna podstawa
         line(buffer, mat, x1, y1, z1, x2, y1, z1, r, g, b, a);
@@ -96,7 +91,7 @@ public class ESPModule {
         line(buffer, mat, x2, y2, z2, x1, y2, z2, r, g, b, a);
         line(buffer, mat, x1, y2, z2, x1, y2, z1, r, g, b, a);
 
-        // Pionowe linie
+        // Pionowe krawędzie
         line(buffer, mat, x1, y1, z1, x1, y2, z1, r, g, b, a);
         line(buffer, mat, x2, y1, z1, x2, y2, z1, r, g, b, a);
         line(buffer, mat, x2, y1, z2, x2, y2, z2, r, g, b, a);
@@ -107,7 +102,7 @@ public class ESPModule {
                       float x1, float y1, float z1,
                       float x2, float y2, float z2,
                       float r, float g, float b, float a) {
-        buffer.vertex(mat, x1, y1, z1).color(r, g, b, a).normal(0, 0, 0);
-        buffer.vertex(mat, x2, y2, z2).color(r, g, b, a).normal(0, 0, 0);
+        buffer.vertex(mat, x1, y1, z1).color(r, g, b, a);
+        buffer.vertex(mat, x2, y2, z2).color(r, g, b, a);
     }
 }
