@@ -1,41 +1,28 @@
 {
-	"schemaVersion": 1,
-	"id": "modid",
-	"version": "${version}",
-	"name": "Example mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/modid/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"com.example.ExampleMod"
-		],
-		"client": [
-			"com.example.ExampleModClient"
-		]
-	},
-	"mixins": [
-		"modid.mixins.json",
-		{
-			"config": "modid.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.18.2",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
-	}
+  "schemaVersion": 1,
+  "id": "cheaty12333",
+  "version": "${version}",
+  "name": "Cheaty12333",
+  "description": "Proste cheaty do Minecraft 1.21.4 (ESP, Fly, NoFall itp.)",
+  "authors": [
+    "TwojNick"
+  ],
+  "contact": {
+    "homepage": "https://github.com/TwojNick/cheaty12333",
+    "sources": "https://github.com/TwojNick/cheaty12333"
+  },
+  "license": "MIT",
+  "icon": "assets/cheaty12333/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "pl.twojnick.cheaty12333.Cheaty12333Client"
+    ]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "minecraft": "~1.21.4",
+    "fabric-api": "*"
+  }
 }

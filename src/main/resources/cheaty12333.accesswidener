@@ -1,0 +1,5 @@
+accessWidener v2 named
+
+accessible class net/minecraft/client/MinecraftClient
+accessible field net/minecraft/client/MinecraftClient player Lnet/minecraft/client/network/ClientPlayerEntity;
+accessible field net/minecraft/client/MinecraftClient world Lnet/minecraft/client/world/ClientWorld;
