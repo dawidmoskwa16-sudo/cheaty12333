@@ -2,7 +2,8 @@ package pl.twojnick.cheaty12333;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
@@ -38,8 +39,9 @@ public class ESPModule {
         matrices.push();
         matrices.translate(-camPos.x, -camPos.y, -camPos.z);
 
-        VertexConsumerProvider.Immediate vertices = mc.getBufferBuilders().getEntityVertexConsumers();
-        VertexConsumer buffer = vertices.getBuffer(RenderLayer.getLines());
+        VertexConsumer buffer = mc.getBufferBuilders()
+                .getEntityVertexConsumers()
+                .getBuffer(RenderLayer.getLines());
 
         for (Entity entity : mc.world.getEntities()) {
             if (entity == mc.player) continue;
@@ -49,15 +51,14 @@ public class ESPModule {
             drawBox(matrices, buffer, entity, color);
         }
 
-        vertices.draw(); // ważne!
+        mc.getBufferBuilders().getEntityVertexConsumers().draw(RenderLayer.getLines());
         matrices.pop();
     }
 
     private boolean shouldRender(Entity e) {
         if (e instanceof PlayerEntity) return players;
         if (e instanceof LivingEntity && !(e instanceof PlayerEntity)) return mobs;
-        if (e instanceof ItemEntity) return items;
-        return false;
+        return e instanceof ItemEntity && items;
     }
 
     private Color getColor(Entity e) {
@@ -66,47 +67,47 @@ public class ESPModule {
         return Color.CYAN;
     }
 
-    // Nowa, działająca metoda rysowania boxa w 1.21.4+
     private void drawBox(MatrixStack matrices, VertexConsumer buffer, Entity entity, Color color) {
         Box box = entity.getBoundingBox().offset(-entity.getX(), -entity.getY(), -entity.getZ());
 
         float r = color.getRed() / 255f;
         float g = color.getGreen() / 255f;
         float b = color.getBlue() / 255f;
-        float a = 0.6f; // przezroczystość
+        float a = 0.7f;
 
-        Matrix4f posMatrix = matrices.peek().getPositionMatrix();
+        Matrix4f mat = matrices.peek().getPositionMatrix();
 
-        // Rysujemy 12 krawędzi boxa ręcznie (działa stabilnie w 1.21+)
-        float minX = (float) box.minX;
-        float minY = (float) box.minY;
-        float minZ = (float) box.minZ;
-        float maxX = (float) box.maxX;
-        float maxY = (float) box.maxY;
-        float maxZ = (float) box.maxZ;
+        float x1 = (float) box.minX;
+        float y1 = (float) box.minY;
+        float z1 = (float) box.minZ;
+        float x2 = (float) box.maxX;
+        float y2 = (float) box.maxY;
+        float z2 = (float) box.maxZ;
 
         // Dolna podstawa
-        line(buffer, posMatrix, minX, minY, minZ, maxX, minY, minZ, r, g, b, a);
-        line(buffer, posMatrix, maxX, minY, minZ, maxX, minY, maxZ, r, g, b, a);
-        line(buffer, posMatrix, maxX, minY, maxZ, minX, minY, maxZ, r, g, b, a);
-        line(buffer, posMatrix, minX, minY, maxZ, minX, minY, minZ, r, g, b, a);
+        line(buffer, mat, x1, y1, z1, x2, y1, z1, r, g, b, a);
+        line(buffer, mat, x2, y1, z1, x2, y1, z2, r, g, b, a);
+        line(buffer, mat, x2, y1, z2, x1, y1, z2, r, g, b, a);
+        line(buffer, mat, x1, y1, z2, x1, y1, z1, r, g, b, a);
 
         // Górna podstawa
-        line(buffer, posMatrix, minX, maxY, minZ, maxX, maxY, minZ, r, g, b, a);
-        line(buffer, posMatrix, maxX, maxY, minZ, maxX, maxY, maxZ, r, g, b, a);
-        line(buffer, posMatrix, maxX, maxY, maxZ, minX, maxY, maxZ, r, g, b, a);
-        line(buffer, posMatrix, minX, maxY, maxZ, minX, maxY, minZ, r, g, b, a);
+        line(buffer, mat, x1, y2, z1, x2, y2, z1, r, g, b, a);
+        line(buffer, mat, x2, y2, z1, x2, y2, z2, r, g, b, a);
+        line(buffer, mat, x2, y2, z2, x1, y2, z2, r, g, b, a);
+        line(buffer, mat, x1, y2, z2, x1, y2, z1, r, g, b, a);
 
-        // Pionowe krawędzie
-        line(buffer, posMatrix, minX, minY, minZ, minX, maxY, minZ, r, g, b, a);
-        line(buffer, posMatrix, maxX, minY, minZ, maxX, maxY, minZ, r, g, b, a);
-        line(buffer, posMatrix, maxX, minY, maxZ, maxX, maxY, maxZ, r, g, b, a);
-        line(buffer, posMatrix, minX, minY, maxZ, minX, maxY, maxZ, r, g, b, a);
+        // Pionowe linie
+        line(buffer, mat, x1, y1, z1, x1, y2, z1, r, g, b, a);
+        line(buffer, mat, x2, y1, z1, x2, y2, z1, r, g, b, a);
+        line(buffer, mat, x2, y1, z2, x2, y2, z2, r, g, b, a);
+        line(buffer, mat, x1, y1, z2, x1, y2, z2, r, g, b, a);
     }
 
-    private void line(VertexConsumer buffer, Matrix4f matrix, float x1, float y1, float z1,
-                      float x2, float y2, float z2, float r, float g, float b, float a) {
-        buffer.vertex(matrix, x1, y1, z1).color(r, g, b, a).normal(0, 0, 0).next();
-        buffer.vertex(matrix, x2, y2, z2).color(r, g, b, a).normal(0, 0, 0).next();
+    private void line(VertexConsumer buffer, Matrix4f mat,
+                      float x1, float y1, float z1,
+                      float x2, float y2, float z2,
+                      float r, float g, float b, float a) {
+        buffer.vertex(mat, x1, y1, z1).color(r, g, b, a).normal(0, 0, 0);
+        buffer.vertex(mat, x2, y2, z2).color(r, g, b, a).normal(0, 0, 0);
     }
 }
